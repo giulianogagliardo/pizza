@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Medie stagionali NBA</title>
+  </head>
+  <body>
+    <!-- form per inserimento del nome del giocatore -->
+    <form id="player-form">
+      <label for="player-name">Inserisci il nome del giocatore:</label><br>
+      <input type="text" id="player-name"><br>
+      <button type="submit">Mostra statistiche</button>
+    </form> 
+    <!-- elemento span per visualizzare le statistiche -->
+    <span id="stats"></span>
+    <!-- script per inviare la richiesta HTTP e visualizzare le statistiche -->
+    <script>
+      // funzione per inviare la richiesta HTTP e recuperare le statistiche
+      async function getStats(playerName) {
+        // costruzione dell'URL della pagina del giocatore su basketball-reference.com
+        const playerNameFormatted = playerName.toLowerCase().replace(" ", "-");
+        const url = `https://www.basketball-reference.com/players/${playerNameFormatted[0]}/${playerNameFormatted}.html`;
+        // invio della richiesta HTTP
+        const response = await fetch(url);
+        const html = await response.text();
+        // creazione dell'oggetto DOM dal codice HTML
+        const template = document.createElement("template");
+        template.innerHTML = html;
+        // ricerca delle celle delle statistiche del giocatore nella tabella delle medie della stagione
+        const statsCells = template.content.querySelectorAll("td[data-stat='per_game']");
+        // estrazione delle medie di punti, rimbalzi e assist dalle celle trovate
+        const pointsAverage = statsCells[0].textContent;
+        const reboundsAverage = statsCells[1].textContent;
+        const assistsAverage = statsCells[2].textContent;
+        // restituzione delle medie come oggetto
+        return { points: pointsAverage, rebounds: reboundsAverage, assists: assistsAverage };
+      }
+      // funzione per visualizzare le statistiche
+      function showStats(stats) {
+        // creazione del testo da visualizzare
+        const text = `Medie per ${stats.playerName}: Punti ${stats.points}, Rimbalzi ${stats.rebounds}, Assist ${stats.assists}`;
+        // visualizzazione del testo nell'elemento span
+        document.getElementById("stats").textContent = text;
+      }
+      // gestione della submit del form
+      document.getElementById("player-form").addEventListener("submit", event => {
+        // impedimento dell'invio del form
+        event.preventDefault();
+      // lettura del nome del giocatore dal campo input
+      const playerName = document.getElementById("player-name").value;
+      // invocazione della funzione per recuperare le statistiche e passaggio del nome del giocatore come parametro
+      getStats(playerName).then(stats => {
+        // aggiunta del nome del giocatore alle statistiche
+        stats.playerName = playerName;
+        // invocazione della funzione per visualizzare le statistiche
+        showStats(stats);
+      });
+    });
+    </script>
+  </body>
+</html>
